@@ -21,25 +21,27 @@ def handle(uri):
 
 def static_page(name):
     with open(os.path.join(STATIC_DIR, name), 'r') as f:
-        return f.read()
-    return ''
+        return f.read().decode('utf-8')
+    return u''
 
 def link_page(url):
+    up = urlparse.urlparse(url)
+    domain = '%s://%s' % (up.scheme, up.netloc)
     html = [static_page('header.tmpl').format(title='Stitchability')]
-    html.append('<form action="/" method="POST">')
+    html.append(u'<form action="/" method="POST">')
     data = stitchability.get_data(url)
-    for l in data['links']:
+    for t, u in data['links']:
+        if not t or not u or not u.startswith(domain): continue
         html.append(
-            '<input type="checkbox" name="url" value="{url}" checked="true"/>'
-            .format(url=l[1]))
+            u'<input type="checkbox" name="url" value="{url}" checked="true"/>'
+            .format(url=u))
         html.append(
-            '{text} - <a href="{url}">{surl}</a><br />'
-            .format(
-                text=l[0], url=l[1],
-                surl=l[1][len(url):] if l[1].startswith(url) else l[1]))
-    html.append('<input type="hidden" name="title" value="{title}" />'
+            u'{text} - <a href="{url}">{surl}</a><br />'
+            .format(text=t, url=u,
+                surl=u[len(url):] if u.startswith(url) else u))
+    html.append(u'<input type="hidden" name="title" value="{title}" />'
         .format(title=data['title']))
-    html.append('<input type="submit" value="Submit" />')
+    html.append(u'<input type="submit" value="Submit" />')
     html.append(static_page('footer.tmpl'))
     return '\n'.join(html)
 
@@ -55,7 +57,8 @@ def index(method, get=None, post=None):
         else:
             return link_page(get['url'][0])
     elif method == 'POST':
-        html = [static_page('header.tmpl').format(title=post['title'][0])]
+        html = [static_page('header.tmpl')
+            .format(title=post['title'][0].decode('utf-8'))]
         html.append(stitchability.stitch(post['url']))
         html.append(static_page('footer.tmpl'))
         fhash = randhash()
