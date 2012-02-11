@@ -72,11 +72,7 @@ def application(env, start_response):
     get = urlparse.parse_qs(env.get('QUERY_STRING'), '')
     lines = env['wsgi.input'].readlines()
     post = urlparse.parse_qs(lines[0]) if lines else {}
-    if os.path.exists(os.path.join(CACHE_DIR, uri.lstrip('/'))):
-        start_response('200 OK', [TEXT_HTML])
-        with open(os.path.join(CACHE_DIR, uri.lstrip('/')), 'r') as f:
-            return [f.read()]
-    elif uri in handlers:
+    if uri in handlers:
         try:
             html = handlers[uri](method, get, post)
             start_response('200 OK', [TEXT_HTML])
@@ -85,6 +81,10 @@ def application(env, start_response):
             raise
             start_response('500 Internal Error', [TEXT_HTML])
             return ['500 Internal Error']
+    elif os.path.exists(os.path.join(CACHE_DIR, uri.lstrip('/'))):
+        start_response('200 OK', [TEXT_HTML])
+        with open(os.path.join(CACHE_DIR, uri.lstrip('/')), 'r') as f:
+            return [f.read()]
     else:
         start_response('404 Not Found', [TEXT_HTML])
         return ['404 Not Found']
