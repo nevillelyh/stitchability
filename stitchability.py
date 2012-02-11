@@ -17,14 +17,16 @@ def get_data(url):
 def stitch(urls):
     pool = [gevent.spawn(extract, url) for url in urls]
     gevent.joinall(pool)
-    return '\n'.join([g.value for g in pool])
+    return '<div>%s</div>' % ('\n'.join([g.value for g in pool]))
 
 def extract(url):
-    html = readability.Document(urllib2.urlopen(url).read()).summary()
+    doc = readability.Document(urllib2.urlopen(url).read())
+    title = doc.title()
+    html = doc.summary()
     html = lstrip(html, '<html>')
     html = lstrip(html, '<body/>')
     html = rstrip(html, '</html>')
-    return html.strip()
+    return '<h1>%s</h1>%s' % (title, html.strip())
 
 def lstrip(s, p):
     return s[len(p):] if s.startswith(p) else s
