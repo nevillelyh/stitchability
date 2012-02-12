@@ -8,10 +8,16 @@ import lxml.html
 def get_data(url):
     tree = lxml.html.parse(url)
     title = tree.find('head').find('title').text
-    links = lxml.html.iterlinks(tree.find('body'))
+    uniq = set()
+    links = []
+    for l in lxml.html.iterlinks(tree.find('body')):
+        u = urlparse.urljoin(url, urlparse.urldefrag(l[2])[0])
+        if u in uniq: continue
+        links.append((l[0].text, u))
+        uniq.add(u)
     return {
         'title' : title,
-        'links' : [(l[0].text, urlparse.urljoin(url, l[2])) for l in links],
+        'links' : links,
         }
 
 def stitch(urls):
