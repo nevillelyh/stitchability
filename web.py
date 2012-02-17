@@ -67,6 +67,8 @@ def index(method, get=None, post=None):
         with open(os.path.join(CACHE_DIR, fhash), 'w') as f:
             f.write('\n'.join(html).encode('utf-8'))
             return static_page('redirect.tmpl').format(url=fhash)
+    else:
+        return ''
 
 def application(env, start_response):
     uri = env['PATH_INFO']
