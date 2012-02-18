@@ -6,12 +6,13 @@ import gevent.pywsgi
 
 import stitchability
 
-PORT = 8888
+PORT = 80
 STATIC_DIR = 'static'
 CACHE_DIR = 'cache'
 TEXT_HTML = ('Content-Type', 'text/html')
 
 handlers = {}
+
 
 def handle(uri):
     def wrapper(f):
@@ -19,10 +20,12 @@ def handle(uri):
         return f
     return wrapper
 
+
 def static_page(name):
     with open(os.path.join(STATIC_DIR, name), 'r') as f:
         return f.read().decode('utf-8')
     return u''
+
 
 def link_page(url):
     up = urlparse.urlparse(url)
@@ -31,7 +34,8 @@ def link_page(url):
     html.append(u'<form action="/" method="POST">')
     data = stitchability.get_data(url)
     for t, u in data['links']:
-        if not t or not u or not u.startswith(domain): continue
+        if not t or not u or not u.startswith(domain):
+            continue
         html.append(
             u'<input type="checkbox" name="url" value="{url}" checked="true"/>'
             .format(url=u))
@@ -45,9 +49,11 @@ def link_page(url):
     html.append(static_page('footer.tmpl'))
     return '\n'.join(html)
 
+
 def randhash():
     chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     return ''.join(chars[random.randint(0, 61)] for i in xrange(8))
+
 
 @handle('/')
 def index(method, get=None, post=None):
@@ -69,6 +75,7 @@ def index(method, get=None, post=None):
             return static_page('redirect.tmpl').format(url=fhash)
     else:
         return ''
+
 
 def application(env, start_response):
     uri = env['PATH_INFO']
